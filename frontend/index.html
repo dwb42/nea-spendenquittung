@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEA e.V. — Spendenbelege</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --success: #16a34a;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --radius: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Login */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .login-box h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .login-box p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* App layout */
+        .app-container { display: none; }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 { font-size: 1.25rem; }
+
+        .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+        .main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Forms */
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: var(--text-muted);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+
+        .form-row {
+            margin-bottom: 0.75rem;
+        }
+
+        .form-row-inline {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        button {
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover { background: var(--danger-hover); }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+        .btn-secondary:hover { background: #cbd5e1; }
+
+        .btn-sm {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Donor list */
+        .donor-list {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .donor-item {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .donor-item:hover { border-color: var(--primary); background: #f0f5ff; }
+        .donor-item.selected { border-color: var(--primary); background: #eff6ff; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+
+        .donor-info strong { display: block; font-size: 0.95rem; }
+        .donor-info span { font-size: 0.8rem; color: var(--text-muted); }
+
+        .donor-actions { display: flex; gap: 0.35rem; }
+
+        /* Search */
+        .search-box {
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            background: var(--bg);
+        }
+
+        /* Receipt list */
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .receipt-table th {
+            text-align: left;
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .receipt-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .receipt-table tr:hover { background: var(--bg); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius);
+            color: white;
+            font-size: 0.9rem;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Modal overlay for PDF preview */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--card);
+            border-radius: 12px;
+            width: 95%;
+            max-width: 1280px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 { font-size: 1rem; }
+
+        .modal-body {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-container" id="loginScreen">
+    <div class="login-box">
+        <h1>NEA e.V.</h1>
+        <p>Spendenbelege erstellen</p>
+        <form id="loginForm">
+            <div class="form-row">
+                <label for="password">Passwort</label>
+                <input type="password" id="password" placeholder="Passwort eingeben" autofocus>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%; margin-top:0.5rem;">Anmelden</button>
+        </form>
+    </div>
+</div>
+
+<!-- App -->
+<div class="app-container" id="appContainer">
+    <header class="header">
+        <h1>NEA e.V. — Spendenbelege</h1>
+        <div class="header-actions">
+            <button class="tab active" data-tab="create" onclick="switchTab('create')">Erstellen</button>
+            <button class="tab" data-tab="history" onclick="switchTab('history')">Historie</button>
+            <button class="btn-secondary btn-sm" onclick="logout()">Abmelden</button>
+        </div>
+    </header>
+
+    <!-- Create Tab -->
+    <div class="main" id="tabCreate">
+        <!-- Left: Donor List -->
+        <div class="card">
+            <h2>Spender</h2>
+            <div class="search-box">
+                <input type="text" id="donorSearch" placeholder="Suchen..." oninput="filterDonors()">
+            </div>
+            <div class="donor-list" id="donorList">
+                <div class="empty-state">Keine Spender vorhanden</div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-primary btn-sm" onclick="showDonorForm()">+ Neuer Spender</button>
+            </div>
+
+            <!-- Donor Form (hidden) -->
+            <div id="donorFormContainer" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+                <h3 style="font-size:0.95rem; margin-bottom:0.75rem;" id="donorFormTitle">Neuer Spender</h3>
+                <input type="hidden" id="donorEditId">
+                <div class="form-row">
+                    <label>Name</label>
+                    <input type="text" id="donorName" placeholder="Name / Firma">
+                </div>
+                <div class="form-row">
+                    <label>Straße</label>
+                    <input type="text" id="donorStrasse" placeholder="Straße und Hausnummer">
+                </div>
+                <div class="form-row-inline">
+                    <div>
+                        <label>PLZ</label>
+                        <input type="text" id="donorPlz" placeholder="PLZ">
+                    </div>
+                    <div>
+                        <label>Ort</label>
+                        <input type="text" id="donorOrt" placeholder="Ort">
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary btn-sm" onclick="saveDonor()">Speichern</button>
+                    <button class="btn-secondary btn-sm" onclick="hideDonorForm()">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Receipt Form -->
+        <div class="card">
+            <h2>Spendenquittung erstellen</h2>
+            <div id="selectedDonorInfo" class="empty-state">
+                Bitte wähle links einen Spender aus
+            </div>
+            <div id="receiptForm" style="display:none;">
+                <div style="padding:0.75rem; background:var(--bg); border-radius:var(--radius); margin-bottom:1rem;">
+                    <strong id="selectedDonorName"></strong>
+                    <span style="font-size:0.85rem; color:var(--text-muted);" id="selectedDonorAddress"></span>
+                </div>
+                <div class="form-row">
+                    <label>Betrag (EUR)</label>
+                    <input type="number" id="receiptBetrag" placeholder="z.B. 500" step="0.01" min="0">
+                </div>
+                <div class="form-row">
+                    <label>Spendendatum</label>
+                    <input type="date" id="receiptDatum">
+                </div>
+                <div class="form-row">
+                    <label>E-Mail für Versand</label>
+                    <input type="email" id="receiptEmail">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" id="createReceiptBtn" onclick="createReceipt()">
+                        Quittung erstellen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Tab -->
+    <div class="main" id="tabHistory" style="display:none;">
+        <div class="card full-width">
+            <h2>Erstellte Quittungen</h2>
+            <div id="receiptList">
+                <div class="empty-state">Noch keine Quittungen erstellt</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PDF Preview Modal -->
+<div class="modal-overlay" id="pdfModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="pdfModalTitle">PDF Vorschau</h3>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+                <span id="pdfModalEmailInfo" style="font-size:0.8rem; color:var(--text-muted); display:none;"></span>
+                <button class="btn-primary btn-sm" id="sendEmailBtn" style="display:none;" onclick="sendEmail()">E-Mail senden</button>
+                <button class="btn-secondary btn-sm" onclick="closePdfModal()">Schließen</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <iframe id="pdfFrame"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = '/api';
+    let donors = [];
+    let selectedDonorId = null;
+    let defaultEmail = 'post@heydenreichprojekte.de';
+    let pendingReceiptId = null;
+    let pendingReceiptEmail = null;
+
+    // --- Auth ---
+    async function checkAuth() {
+        const res = await fetch(`${API}/auth/check`);
+        const data = await res.json();
+        if (data.authenticated) {
+            showApp();
+        }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pw = document.getElementById('password').value;
+        try {
+            const res = await fetch(`${API}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pw }),
+            });
+            if (res.ok) {
+                showApp();
+            } else {
+                toast('Falsches Passwort', 'error');
+            }
+        } catch {
+            toast('Verbindungsfehler', 'error');
+        }
+    });
+
+    async function logout() {
+        await fetch(`${API}/logout`, { method: 'POST' });
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
+    }
+
+    async function showApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        // Load config
+        try {
+            const res = await fetch(`${API}/config`);
+            const data = await res.json();
+            defaultEmail = data.default_email;
+        } catch {}
+        document.getElementById('receiptEmail').value = defaultEmail;
+        document.getElementById('receiptDatum').value = new Date().toISOString().split('T')[0];
+        loadDonors();
+    }
+
+    // --- Tabs ---
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        document.getElementById('tabCreate').style.display = tab === 'create' ? 'grid' : 'none';
+        document.getElementById('tabHistory').style.display = tab === 'history' ? 'grid' : 'none';
+        if (tab === 'history') loadReceipts();
+    }
+
+    // --- Donors ---
+    async function loadDonors() {
+        try {
+            const res = await fetch(`${API}/donors`);
+            donors = await res.json();
+            renderDonors();
+        } catch {
+            toast('Fehler beim Laden der Spender', 'error');
+        }
+    }
+
+    function renderDonors() {
+        const query = document.getElementById('donorSearch').value.toLowerCase();
+        const filtered = donors.filter(d =>
+            d.name.toLowerCase().includes(query) ||
+            d.ort.toLowerCase().includes(query)
+        );
+        const list = document.getElementById('donorList');
+        if (filtered.length === 0) {
+            list.innerHTML = '<div class="empty-state">Keine Spender gefunden</div>';
+            return;
+        }
+        list.innerHTML = filtered.map(d => `
+            <div class="donor-item ${d.id === selectedDonorId ? 'selected' : ''}"
+                 onclick="selectDonor(${d.id})">
+                <div class="donor-info">
+                    <strong>${esc(d.name)}</strong>
+                    <span>${esc(d.strasse)}, ${esc(d.plz)} ${esc(d.ort)}</span>
+                </div>
+                <div class="donor-actions" onclick="event.stopPropagation()">
+                    <button class="btn-secondary btn-sm" onclick="editDonor(${d.id})">✎</button>
+                    <button class="btn-danger btn-sm" onclick="deleteDonor(${d.id})">✕</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function filterDonors() { renderDonors(); }
+
+    function selectDonor(id) {
+        selectedDonorId = id;
+        const d = donors.find(x => x.id === id);
+        document.getElementById('selectedDonorInfo').style.display = 'none';
+        document.getElementById('receiptForm').style.display = 'block';
+        document.getElementById('selectedDonorName').textContent = d.name;
+        document.getElementById('selectedDonorAddress').textContent = `${d.strasse}, ${d.plz} ${d.ort}`;
+        document.getElementById('receiptEmail').value = defaultEmail;
+        renderDonors();
+    }
+
+    function showDonorForm(id = null) {
+        const container = document.getElementById('donorFormContainer');
+        container.style.display = 'block';
+        document.getElementById('donorFormTitle').textContent = id ? 'Spender bearbeiten' : 'Neuer Spender';
+        document.getElementById('donorEditId').value = id || '';
+        if (id) {
+            const d = donors.find(x => x.id === id);
+            document.getElementById('donorName').value = d.name;
+            document.getElementById('donorStrasse').value = d.strasse;
+            document.getElementById('donorPlz').value = d.plz;
+            document.getElementById('donorOrt').value = d.ort;
+        } else {
+            document.getElementById('donorName').value = '';
+            document.getElementById('donorStrasse').value = '';
+            document.getElementById('donorPlz').value = '';
+            document.getElementById('donorOrt').value = '';
+        }
+        document.getElementById('donorName').focus();
+    }
+
+    function hideDonorForm() {
+        document.getElementById('donorFormContainer').style.display = 'none';
+    }
+
+    function editDonor(id) { showDonorForm(id); }
+
+    async function saveDonor() {
+        const id = document.getElementById('donorEditId').value;
+        const body = {
+            name: document.getElementById('donorName').value.trim(),
+            strasse: document.getElementById('donorStrasse').value.trim(),
+            plz: document.getElementById('donorPlz').value.trim(),
+            ort: document.getElementById('donorOrt').value.trim(),
+        };
+        if (!body.name || !body.strasse || !body.plz || !body.ort) {
+            toast('Bitte alle Felder ausfüllen', 'error');
+            return;
+        }
+        try {
+            const url = id ? `${API}/donors/${id}` : `${API}/donors`;
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            if (res.ok) {
+                toast(id ? 'Spender aktualisiert' : 'Spender angelegt', 'success');
+                hideDonorForm();
+                loadDonors();
+            } else {
+                toast('Fehler beim Speichern', 'error');
+            }
+        } catch {
+            toast('Verbindungsfehler', 'error');
+        }
+    }
+
+    async function deleteDonor(id) {
+        const d = donors.find(x => x.id === id);
+        if (!confirm(`"${d.name}" wirklich löschen?`)) return;
+        try {
+            await fetch(`${API}/donors/${id}`, { method: 'DELETE' });
+            if (selectedDonorId === id) {
+                selectedDonorId = null;
+                document.getElementById('selectedDonorInfo').style.display = 'block';
+                document.getElementById('receiptForm').style.display = 'none';
+            }
+            toast('Spender gelöscht', 'success');
+            loadDonors();
+        } catch {
+            toast('Fehler beim Löschen', 'error');
+        }
+    }
+
+    // --- Receipts ---
+    async function createReceipt() {
+        if (!selectedDonorId) return;
+        const betrag = parseFloat(document.getElementById('receiptBetrag').value);
+        const datumRaw = document.getElementById('receiptDatum').value;
+        const email = document.getElementById('receiptEmail').value.trim();
+
+        if (!betrag || betrag <= 0) { toast('Bitte gültigen Betrag eingeben', 'error'); return; }
+        if (!datumRaw) { toast('Bitte Datum eingeben', 'error'); return; }
+        if (!email) { toast('Bitte E-Mail eingeben', 'error'); return; }
+
+        // Convert date to DD.MM.YYYY
+        const parts = datumRaw.split('-');
+        const spendendatum = `${parts[2]}.${parts[1]}.${parts[0]}`;
+
+        const btn = document.getElementById('createReceiptBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Wird erstellt...';
+
+        try {
+            const res = await fetch(`${API}/receipts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    donor_id: selectedDonorId,
+                    betrag,
+                    spendendatum,
+                    email,
+                }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast('Quittung erstellt — bitte PDF prüfen', 'success');
+                // Show PDF with send button
+                pendingReceiptId = data.id;
+                pendingReceiptEmail = email;
+                showPdfModal(data.id, `${data.donor_name} — ${spendendatum}`, email);
+                // Reset form
+                document.getElementById('receiptBetrag').value = '';
+                document.getElementById('receiptDatum').value = new Date().toISOString().split('T')[0];
+                document.getElementById('receiptEmail').value = defaultEmail;
+            } else {
+                toast(data.detail || 'Fehler beim Erstellen', 'error');
+            }
+        } catch {
+            toast('Verbindungsfehler', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Quittung erstellen';
+        }
+    }
+
+    async function loadReceipts() {
+        try {
+            const res = await fetch(`${API}/receipts`);
+            const receipts = await res.json();
+            const container = document.getElementById('receiptList');
+            if (receipts.length === 0) {
+                container.innerHTML = '<div class="empty-state">Noch keine Quittungen erstellt</div>';
+                return;
+            }
+            container.innerHTML = `
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>Spender</th>
+                            <th>Betrag</th>
+                            <th>Spendendatum</th>
+                            <th>E-Mail</th>
+                            <th>Erstellt</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${receipts.map(r => `
+                            <tr>
+                                <td>${esc(r.donor_name)}</td>
+                                <td>${formatBetrag(r.betrag)} EUR</td>
+                                <td>${esc(r.spendendatum)}</td>
+                                <td>${esc(r.email)}</td>
+                                <td>${formatDate(r.erstellt_am)}</td>
+                                <td>
+                                    <button class="btn-primary btn-sm" onclick="showPdfModal(${r.id}, '${esc(r.donor_name)}', null)">PDF</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        } catch {
+            toast('Fehler beim Laden der Quittungen', 'error');
+        }
+    }
+
+    // --- PDF Modal ---
+    function showPdfModal(receiptId, title, email) {
+        document.getElementById('pdfModalTitle').textContent = title;
+        document.getElementById('pdfFrame').src = `${API}/receipts/${receiptId}/pdf#pagemode=none&view=FitH`;
+        const sendBtn = document.getElementById('sendEmailBtn');
+        const emailInfo = document.getElementById('pdfModalEmailInfo');
+        if (email) {
+            pendingReceiptId = receiptId;
+            pendingReceiptEmail = email;
+            emailInfo.textContent = `An: ${email}`;
+            emailInfo.style.display = 'inline';
+            sendBtn.style.display = 'inline-block';
+        } else {
+            emailInfo.style.display = 'none';
+            sendBtn.style.display = 'none';
+        }
+        document.getElementById('pdfModal').classList.add('active');
+    }
+
+    async function sendEmail() {
+        if (!pendingReceiptId) return;
+        const btn = document.getElementById('sendEmailBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Sende...';
+        try {
+            const res = await fetch(`${API}/receipts/${pendingReceiptId}/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: pendingReceiptEmail }),
+            });
+            if (res.ok) {
+                toast(`E-Mail an ${pendingReceiptEmail} gesendet!`, 'success');
+                btn.style.display = 'none';
+                document.getElementById('pdfModalEmailInfo').textContent = 'E-Mail gesendet';
+            } else {
+                const data = await res.json();
+                toast(data.detail || 'Fehler beim Senden', 'error');
+            }
+        } catch {
+            toast('Verbindungsfehler', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'E-Mail senden';
+        }
+    }
+
+    function closePdfModal() {
+        document.getElementById('pdfModal').classList.remove('active');
+        document.getElementById('pdfFrame').src = '';
+        pendingReceiptId = null;
+        pendingReceiptEmail = null;
+    }
+
+    document.getElementById('pdfModal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closePdfModal();
+    });
+
+    // --- Helpers ---
+    function esc(str) {
+        const el = document.createElement('span');
+        el.textContent = str || '';
+        return el.innerHTML;
+    }
+
+    function formatBetrag(n) {
+        return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2 }).format(n);
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString('de-DE');
+    }
+
+    function toast(message, type = 'success') {
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+    }
+
+    // --- Init ---
+    checkAuth();
+</script>
+</body>
+</html>
